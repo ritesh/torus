@@ -6,13 +6,12 @@ import time
 
 #Configuration options
 DATABASE = '/tmp/torus.db'
-DEBUG = True
+DEBUG = True 
 SECRET_KEY = 'very very secret'
 tokens = {}
 
 app = Flask (__name__)
 app.config.from_object(__name__)
-#app.run('192.168.1.2')
 #Util functions
 def init_db():
 	"""Initialise the database"""
@@ -59,7 +58,7 @@ def check_auth(username, password):
 		return None
 
 #Handlers
-@app.route("/")
+@app.route('/')
 def default_handle():
 	return "Everything works"
 
@@ -87,5 +86,5 @@ def logout():
 
 
 if __name__ == "__main__":
-	app.run()
+	app.run(host='0.0.0.0', port=5000)
 
