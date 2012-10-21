@@ -1,4 +1,4 @@
-from flask import Flask, request, session, _app_ctx_stack, make_response
+from flask import Flask, request, session, _app_ctx_stack, make_response, Response, abort
 from sqlite3 import dbapi2 as sqlite3
 import hashlib
 import random
@@ -38,9 +38,10 @@ def query_db(query, args=(), one=False):
 def generate_token(username):
 	""" Generate 'random' token and store it """
 	#This is a bad way to get randomness!
-	tokens[username] = hashlib.sha1(username + str(int(time.time()))).hexdigest()
+	token = hashlib.sha1(username + str(int(time.time()))).hexdigest()
+	tokens[token] = username
 	print tokens
-	return tokens[username]
+	return token
 
 def check_auth(username, password):
 	db = get_db()
@@ -64,7 +65,6 @@ def default_handle():
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
-	error = None
 	username = None
 	password = None
 	if request.method == 'POST':
@@ -81,9 +81,24 @@ def login():
 @app.route("/logout", methods=['GET', 'POST'])
 def logout():
 	#Destroy session
-	pass
+	if request.method == 'POST':
+		token = request.form['token']
+	if token in tokens:
+		del tokens[token]
+	return "Logged out"
 
+@app.errorhandler(401)
+def custom_401(error):
+	    return Response('You need to be logged in', 401)
 
+@app.route("/accounts", methods=['GET', 'POST'])
+def account_summary():
+	if request.method == 'POST':
+		token = request.form['token']
+	if token not in tokens:
+		abort(401)
+	
+		
 
 if __name__ == "__main__":
 	app.run(host='0.0.0.0', port=5000)
