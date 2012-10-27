@@ -1,4 +1,4 @@
-from flask import Flask, request, session, _app_ctx_stack, make_response, Response, abort
+from flask import Flask, request, session, _app_ctx_stack, make_response, Response, abort, jsonify, json
 from sqlite3 import dbapi2 as sqlite3
 import hashlib
 import random
@@ -36,13 +36,12 @@ def query_db(query, args=(), one=False):
 	 rv = cur.fetchall()
 	 return (rv[0] if rv else None) if one else rv
 
-def generate_token(username):
+def generate_token(username, accountid):
 	""" Generate random token and store it in memory """
 	#This is a bad way to get randomness!
 	token = hashlib.sha1(username + str(int(time.time()))).hexdigest()
 	#Should probably map to account id?
-	tokens[token] = username
-	print tokens
+	tokens[token] = accountid
 	return token
 
 def check_auth(username, password):
@@ -51,15 +50,14 @@ def check_auth(username, password):
 	#Bad idea, this allows SQL injection!
 	cur = db.execute("select * from authdetails where username  = \"%s\"" %  username)
 	result =  cur.fetchone()
-	print result
 	if result is not None:
 		#Timing attack: never compare hashes like this, this should be done in constant
 		#time
-		print "res 0 ", result[0]
+		accountid = result[0]
 		if pwhash == result[3]:
 			#update login time
 			db.execute('update authdetails SET lastlogin = ? WHERE id = ?', (time.time(), result[0]))
-			return generate_token(username)
+			return generate_token(username, accountid)
 	else:
 		#User doesn't exist
 		return None
@@ -68,10 +66,11 @@ def extract_token():
 	token = request.form['token']
 	return token if token else None
 
+
 #Handlers
 @app.route('/')
 def default_handle():
-	return "Everything works"
+	return make_response('Everything works\n')
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
@@ -82,49 +81,56 @@ def login():
 		password = request.form['password']
 	token = check_auth(username, password)
 	if token is not None:
-		response = make_response()
+		response = make_response('Successfully logged in\n')
 		response.headers['X-token'] = token
 		return response
 	else:
-		return "Fail!"
+		return make_response('Invalid username or password\n') 
 	
 @app.route("/logout", methods=['GET', 'POST'])
 def logout():
 	#Destroy session
+	token = ''
 	if request.method == 'POST':
 		token = extract_token() 
+	if token == '' or token not in tokens:
+		return make_response('Invalid session')
 	if token in tokens:
 		del tokens[token]
-	return "Logged out"
+		return make_response('Successfully logged out\n')
+	
 
 @app.errorhandler(401)
 def custom_401(error):
-	    return Response('You need to be logged in', 401)
+	    return Response('You need to be logged in\n', 401)
 
 @app.route("/accounts", methods=['GET', 'POST'])
 def account_summary():
+	token = ''
 	if request.method == 'POST':
 		token = extract_token()
-	if token not in tokens:
+	if token not in tokens or token == '':
 		abort(401)
-	
+	#Get account summary for the user
+	rv = query_db('select accounts.accountid, accounts.accountbalance, account_type.type from accounts, account_type where accountid = ? AND accounts.accounttype = account_type.id', [tokens[token]], one=False)
+	results = {}
+	for r in rv:
+		results[r[2]] = r[1]
+	return jsonify(results)
 
 @app.route("/account/<account_type>")
 def show_account_details(account_type):
-	#replace this witha  query to the account_type table 
-	if account_type not in ('savings, current'):
-		return "Fail"
-
+	#replace this with a query to the account_type table 
 	token = '';
 	if request.method == 'POST':
 		token = extract_token()
-	if token == '' or token is None:
-		#nope
-		return Response('You need to be logged in', 401)
-
-	userid = query_db('select id from authdetails where username = ?',tokens[token])
-	
-	transactions = query_db('select transactions.transaction_datetime, transactions.transaction_type, transactions.transactions_amount, transactions.balance_before, transactions.balance_after, transactions.transaction_name from transactions, accounts where transactions.accountid = ')
+	if token not in tokens or token == '':
+		abort(401) 
+	transactions = query_db('select * from transactions')
+	results = {}
+	for r in transactions:
+		results[r[1]] = (r[3], r[4], r[5], r[6])
+	return jsonify(results)
 
 	
 if __name__ == "__main__":

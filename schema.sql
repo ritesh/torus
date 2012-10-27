@@ -42,3 +42,28 @@ create table transactions(
 	foreign key (accountid) references accounts(accountid),
 	foreign key (transaction_type) references transaction_types(id)
 );
+
+insert into authdetails (username, password) values ('john', 'aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d');
+insert into authdetails (username, password) values ('jane', 'aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d');
+insert into authdetails (username, password) values ('jack', 'aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d');
+insert into authdetails (username, password) values ('molly', 'aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d');
+insert into authdetails (username, password) values ('moe', 'aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d');
+
+insert into account_type (id, type) values (1, 'savings');
+insert into account_type (id, type) values (2, 'current');
+
+insert into transaction_types(id, type) values (1, 'debit');
+insert into transaction_types(id, type) values (2, 'credit');
+
+insert into accounts (accountid, accountbalance, accounttype) values (1, 500, 1);
+insert into accounts (accountid, accountbalance, accounttype) values (2, 100, 1);
+insert into accounts (accountid, accountbalance, accounttype) values (3, 9000,1);
+insert into accounts (accountid, accountbalance, accounttype) values (4, 500, 1);
+insert into accounts (accountid, accountbalance, accounttype) values (5, 500, 1);
+insert into accounts (accountid, accountbalance, accounttype) values (1, 500, 2);
+insert into accounts (accountid, accountbalance, accounttype) values (2, 500, 2);
+insert into accounts (accountid, accountbalance, accounttype) values (3, 500, 2);
+insert into accounts (accountid, accountbalance, accounttype) values (4, 500, 2);
+insert into accounts (accountid, accountbalance, accounttype) values (5, 500, 2);
+
+
