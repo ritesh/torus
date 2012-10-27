@@ -12,6 +12,7 @@ tokens = {}
 
 app = Flask (__name__)
 app.config.from_object(__name__)
+
 #Util functions
 def init_db():
 	"""Initialise the database"""
@@ -36,9 +37,10 @@ def query_db(query, args=(), one=False):
 	 return (rv[0] if rv else None) if one else rv
 
 def generate_token(username):
-	""" Generate 'random' token and store it """
+	""" Generate random token and store it in memory """
 	#This is a bad way to get randomness!
 	token = hashlib.sha1(username + str(int(time.time()))).hexdigest()
+	#Should probably map to account id?
 	tokens[token] = username
 	print tokens
 	return token
@@ -46,17 +48,25 @@ def generate_token(username):
 def check_auth(username, password):
 	db = get_db()
 	pwhash = hashlib.sha1(password).hexdigest()  
-	#Bad idea, this allows for SQL injection!
+	#Bad idea, this allows SQL injection!
 	cur = db.execute("select * from authdetails where username  = \"%s\"" %  username)
 	result =  cur.fetchone()
+	print result
 	if result is not None:
 		#Timing attack: never compare hashes like this, this should be done in constant
 		#time
+		print "res 0 ", result[0]
 		if pwhash == result[3]:
+			#update login time
+			db.execute('update authdetails SET lastlogin = ? WHERE id = ?', (time.time(), result[0]))
 			return generate_token(username)
 	else:
 		#User doesn't exist
 		return None
+
+def extract_token():
+	token = request.form['token']
+	return token if token else None
 
 #Handlers
 @app.route('/')
@@ -82,7 +92,7 @@ def login():
 def logout():
 	#Destroy session
 	if request.method == 'POST':
-		token = request.form['token']
+		token = extract_token() 
 	if token in tokens:
 		del tokens[token]
 	return "Logged out"
@@ -94,12 +104,29 @@ def custom_401(error):
 @app.route("/accounts", methods=['GET', 'POST'])
 def account_summary():
 	if request.method == 'POST':
-		token = request.form['token']
+		token = extract_token()
 	if token not in tokens:
 		abort(401)
 	
-		
 
+@app.route("/account/<account_type>")
+def show_account_details(account_type):
+	#replace this witha  query to the account_type table 
+	if account_type not in ('savings, current'):
+		return "Fail"
+
+	token = '';
+	if request.method == 'POST':
+		token = extract_token()
+	if token == '' or token is None:
+		#nope
+		return Response('You need to be logged in', 401)
+
+	userid = query_db('select id from authdetails where username = ?',tokens[token])
+	
+	transactions = query_db('select transactions.transaction_datetime, transactions.transaction_type, transactions.transactions_amount, transactions.balance_before, transactions.balance_after, transactions.transaction_name from transactions, accounts where transactions.accountid = ')
+
+	
 if __name__ == "__main__":
 	app.run(host='0.0.0.0', port=5000)
 
