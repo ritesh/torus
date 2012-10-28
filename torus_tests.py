@@ -2,7 +2,7 @@ import os
 import torus_server 
 import unittest
 import tempfile
-
+import json
 
 class TorusTestCase(unittest.TestCase):
 
@@ -63,9 +63,10 @@ class TorusTestCase(unittest.TestCase):
         assert self.token is not None
         assert self.token != ''
         rv = self.send_req('/accounts', {'token': self.token})
-	print rv.data
-        #TODO: fix this stupid test case
-        assert 'You need to be logged in' not in rv.data
+	account_bal = json.loads(rv.data)
+	assert account_bal['current'] is not None
+	assert account_bal['savings'] is not None
+	
 
     def test_account_current(self):
         """ Test current account """
@@ -74,11 +75,9 @@ class TorusTestCase(unittest.TestCase):
         #Now login
         rv = self.login('john', 'hello')
         self.token = rv.headers['X-token']
-        assert self.token is not None
-        assert self.token != ''
+        assert self.token is not None and self.token != ''
         rv = self.send_req('/accounts/current', {'token': self.token})
-	print rv.data
-        #TODO: fix this stupid test case
+        print rv.data
         assert 'You need to be logged in' not in rv.data
 
     def test_account_savings(self):

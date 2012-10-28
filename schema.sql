@@ -31,7 +31,7 @@ create table transaction_types(
 );
 
 create table transactions(
-	id integer primary key autoincrement,
+	id integer not null,
 	transaction_datetime integer not null,
 	accountid integer not null,
 	transaction_type integer not null,
@@ -40,6 +40,7 @@ create table transactions(
 	balance_after integer,
 	transaction_name text,
 	foreign key (accountid) references accounts(accountid),
+	foreign key (id) references authdetails(id),
 	foreign key (transaction_type) references transaction_types(id)
 );
 
@@ -66,4 +67,5 @@ insert into accounts (accountid, accountbalance, accounttype) values (3, 500, 2)
 insert into accounts (accountid, accountbalance, accounttype) values (4, 500, 2);
 insert into accounts (accountid, accountbalance, accounttype) values (5, 500, 2);
 
-
+insert into transactions (id, transaction_datetime, accountid, transaction_type, transaction_amount, balance_before, balance_after, transaction_name) values (1, 11123, 1, 1, 100, 500, 400, "ATM Withdrawal");
+insert into transactions (id, transaction_datetime, accountid, transaction_type, transaction_amount, balance_before, balance_after, transaction_name) values (1, 11121, 2, 2, 100, 500, 600, "Interest");
