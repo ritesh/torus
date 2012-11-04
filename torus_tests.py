@@ -64,6 +64,7 @@ class TorusTestCase(unittest.TestCase):
         assert self.token != ''
         rv = self.send_req('/accounts', {'token': self.token})
 	account_bal = json.loads(rv.data)
+	print "AAA", account_bal
 	assert account_bal['current'] is not None
 	assert account_bal['savings'] is not None
 	

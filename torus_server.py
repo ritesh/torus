@@ -63,7 +63,7 @@ def check_auth(username, password):
 		return None
 
 def extract_token():
-	token = request.form['token']
+	token = request.form['token'].strip()
 	return token if token else None
 
 
@@ -109,13 +109,15 @@ def account_summary():
 	token = ''
 	if request.method == 'POST':
 		token = extract_token()
+		print token
 	if token not in tokens or token == '':
 		abort(401)
 	#Get account summary for the user
 	rv = query_db('select accounts.accountid, accounts.accountbalance, account_type.type from accounts, account_type where accountid = ? AND accounts.accounttype = account_type.id', [tokens[token]], one=False)
 	results = {}
-	for r in rv:
-		results[r[2]] = r[1]
+	if len(rv) > 0:
+		for r in rv:
+			results[r[2]] = r[1]
 	return jsonify(results)
 
 @app.route("/accounts/<account_type>", methods=['GET', 'POST'])
