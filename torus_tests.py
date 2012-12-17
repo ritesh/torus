@@ -20,11 +20,12 @@ class TorusTestCase(unittest.TestCase):
 
     # helper functions
 
-    def login(self, username, password):
+    def login(self, username, password, client_key):
         """Helper function to login"""
         return self.app.post('/login', data={
             'username': username,
-            'password': password
+            'password': password,
+	    'client_key': client_key
         }, follow_redirects=True)
 
     def send_req(self, url, data):
@@ -33,11 +34,11 @@ class TorusTestCase(unittest.TestCase):
 
     def test_login_logout(self):
         """Make sure logging in and logging out works"""
-        rv = self.login('john', 'wrongpassword')
-        assert 'Invalid username or password' in rv.data
-        rv = self.login('user2', 'hello')
-        assert 'Invalid username or password' in rv.data
-        rv = self.login('john', 'hello')
+        rv = self.login('john', 'wrongpassword', 'aaa')
+        assert 'Invalid' in rv.data
+        rv = self.login('user2', 'hello', 'aaa')
+        assert 'Invalid' in rv.data
+        rv = self.login('john', 'hello', '9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043')
         assert 'Successfully logged in' in rv.data
 	self.token =  rv.headers['X-token']
 	assert self.token is not None
@@ -58,7 +59,7 @@ class TorusTestCase(unittest.TestCase):
         rv = self.send_req('/accounts', {'token': ''})
         assert 'You need to be logged in' in rv.data
         #Now login
-        rv = self.login('john', 'hello')
+        rv = self.login('john', 'hello', '9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043')
         self.token = rv.headers['X-token']
         assert self.token is not None
         assert self.token != ''
@@ -74,7 +75,7 @@ class TorusTestCase(unittest.TestCase):
         rv = self.send_req('/accounts/current', {'token': ''})
         assert 'You need to be logged in' in rv.data
         #Now login
-        rv = self.login('john', 'hello')
+        rv = self.login('john', 'hello', '9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043')
         self.token = rv.headers['X-token']
         assert self.token is not None and self.token != ''
         rv = self.send_req('/accounts/current', {'token': self.token})

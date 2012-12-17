@@ -9,6 +9,8 @@ DATABASE = '/tmp/torus.db'
 DEBUG = True 
 SECRET_KEY = 'very very secret'
 tokens = {}
+#TODO: Add support for more clients
+CLIENT_KEY = '9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043'
 
 app = Flask (__name__)
 app.config.from_object(__name__)
@@ -46,20 +48,17 @@ def generate_token(username, userid):
 
 def check_auth(username, password):
 	db = get_db()
+	print username, password
 	pwhash = hashlib.sha1(password).hexdigest()  
 	#Bad idea, this allows SQL injection!
-	cur = db.execute("select * from authdetails where username  = \"%s\"" %  username)
+	cur = db.execute("select * from authdetails where username  = \"%s\" and password = \"%s\"" % (username, pwhash))
 	result =  cur.fetchone()
 	if result is not None:
-		#Timing attack: never compare hashes like this, this should be done in constant
-		#time
 		userid = result[0]
-		if pwhash == result[3]:
-			#update login time
-			db.execute('update authdetails SET lastlogin = ? WHERE id = ?', (time.time(), result[0]))
-			return generate_token(username, userid)
+		db.execute('update authdetails SET lastlogin = ? WHERE id = ?', (time.time(), userid))
+		return generate_token(username, userid)
 	else:
-		#User doesn't exist
+		#Incorrect username or password
 		return None
 
 def extract_token():
@@ -69,24 +68,26 @@ def extract_token():
 
 #Handlers
 @app.route('/')
-def default_handle():
+def default_handler():
 	return make_response('Everything works\n')
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
 	username = None
 	password = None
+	client_key = None
 	if request.method == 'POST':
 		username = request.form['username']
 		password = request.form['password']
+		client_key = request.form['client_key']
 	token = check_auth(username, password)
-	if token is not None:
+	if token is not None and client_key == CLIENT_KEY:
 		response = make_response('Successfully logged in\n')
 		response.headers['X-token'] = token
 		return response
 	else:
-		return make_response('Invalid username or password\n') 
-	
+		return make_response('Invalid username, password or unauthorized client\n')
+
 @app.route("/logout", methods=['GET', 'POST'])
 def logout():
 	#Destroy session
@@ -98,7 +99,6 @@ def logout():
 	if token in tokens:
 		del tokens[token]
 		return make_response('Successfully logged out\n')
-	
 
 @app.errorhandler(401)
 def custom_401(error):
@@ -123,20 +123,34 @@ def account_summary():
 @app.route("/accounts/<account_type>", methods=['GET', 'POST'])
 def show_account_details(account_type):
 	#replace this with a query to the account_type table 
-	if request.method == 'POST':
+	if request.method == 'POST' and account_type in ('savings, current'):
 		token = extract_token()
 		if token not in tokens or token == '':
 			abort(401)
+	#Get account that belongs to the user
 	#Returns all transactions, should only return current or savings.
-	#FML, should've paid more attention in Databases.
-
 	transactions = query_db('select transactions.transaction_datetime, transaction_types.type, transactions.transaction_amount, transactions.balance_before, transactions.balance_after, transactions.transaction_name from transactions, transaction_types where transactions.id = ? AND transactions.transaction_type = transaction_types.id', [tokens[token]], one=False)
 	results = {}
 	for r in transactions:
 		results[r[0]] = r[1:]
 	return jsonify(results)
 
-	
+@app.route("/transfer/", methods=['GET', 'POST'])
+def transfer():
+	token = ''
+	if request.method == 'POST':
+		token = extract_token()
+		if token not in tokens or token == '':
+			abort(401)
+		account_to = request.form['account_to']
+		account_from= request.form['account_from']
+		amount = request.form['amount']
+		from_balance = query_db('select accountbalance from accounts')
+		if amount > from_balance:
+			return make_response('Insufficient funds!')
+		#Remove from one acc
+		#Add to another
+		return make_response('Success')
 if __name__ == "__main__":
 	init_db()
 	app.run(host='0.0.0.0', port=5000)
