@@ -36,7 +36,6 @@ create table transactions(
 	accountid integer not null,
 	transaction_type integer not null,
 	transaction_amount,
-	balance_before integer,
 	balance_after integer,
 	transaction_name text,
 	foreign key (accountid) references accounts(accountid),
@@ -67,5 +66,8 @@ insert into accounts (accountid, accountbalance, accounttype) values (3, 500, 2)
 insert into accounts (accountid, accountbalance, accounttype) values (4, 500, 2);
 insert into accounts (accountid, accountbalance, accounttype) values (5, 500, 2);
 
-insert into transactions (id, transaction_datetime, accountid, transaction_type, transaction_amount, balance_before, balance_after, transaction_name) values (1, 11123, 1, 1, 100, 500, 400, "ATM Withdrawal");
-insert into transactions (id, transaction_datetime, accountid, transaction_type, transaction_amount, balance_before, balance_after, transaction_name) values (1, 11121, 2, 2, 100, 500, 600, "Interest");
+insert into transactions (id, transaction_datetime, accountid, transaction_type, transaction_amount, balance_after, transaction_name) values (1, 11123, 1, 1, 100, 400, "ATM Withdrawal");
+insert into transactions (id, transaction_datetime, accountid, transaction_type, transaction_amount, balance_after, transaction_name) values (1, 11123, 1, 1, 100, 300, "ATM Withdrawal");
+insert into transactions (id, transaction_datetime, accountid, transaction_type, transaction_amount, balance_after, transaction_name) values (1, 11123, 1, 1, 100, 200, "ATM Withdrawal");
+insert into transactions (id, transaction_datetime, accountid, transaction_type, transaction_amount, balance_after, transaction_name) values (1, 11123, 1, 1, 100, 100, "ATM Withdrawal");
+insert into transactions (id, transaction_datetime, accountid, transaction_type, transaction_amount, balance_after, transaction_name) values (1, 11121, 1, 2, 1, 101, "Interest");

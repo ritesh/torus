@@ -127,13 +127,20 @@ def show_account_details(account_type):
 		token = extract_token()
 		if token not in tokens or token == '':
 			abort(401)
+
+		userid = tokens[token]
+		transactions = query_db ('select transaction_datetime, transaction_type, transaction_amount, balance_after, transaction_name from transactions where id = ? ', [userid])
+		results = {}
+		for r in transactions:
+			results[r[0]] = r[1:]
 	#Get account that belongs to the user
 	#Returns all transactions, should only return current or savings.
-	transactions = query_db('select transactions.transaction_datetime, transaction_types.type, transactions.transaction_amount, transactions.balance_before, transactions.balance_after, transactions.transaction_name from transactions, transaction_types where transactions.id = ? AND transactions.transaction_type = transaction_types.id', [tokens[token]], one=False)
-	results = {}
-	for r in transactions:
-		results[r[0]] = r[1:]
-	return jsonify(results)
+#	transactions = query_db('select transactions.transaction_datetime, transaction_types.type, transactions.transaction_amount, transactions.balance_before, transactions.balance_after, transactions.transaction_name from transactions, transaction_types where transactions.id = ? AND transactions.transaction_type = transaction_types.id', [tokens[token]], one=False)
+#	results = {}
+#	for r in transactions:
+#		results[r[0]] = r[1:]
+		return jsonify(results)
+	return make_response('Error')
 
 @app.route("/transfer/", methods=['GET', 'POST'])
 def transfer():

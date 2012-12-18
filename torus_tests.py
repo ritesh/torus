@@ -79,7 +79,7 @@ class TorusTestCase(unittest.TestCase):
         self.token = rv.headers['X-token']
         assert self.token is not None and self.token != ''
         rv = self.send_req('/accounts/current', {'token': self.token})
-        print rv.data
+	print rv.data
         assert 'You need to be logged in' not in rv.data
 
     def test_account_savings(self):
