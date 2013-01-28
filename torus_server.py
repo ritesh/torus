@@ -9,7 +9,6 @@ DATABASE = '/tmp/torus.db'
 DEBUG = True 
 SECRET_KEY = 'very very secret'
 tokens = {}
-#TODO: Add support for more clients
 CLIENT_KEY = '9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043'
 
 app = Flask (__name__)
@@ -127,18 +126,11 @@ def show_account_details(account_type):
 		token = extract_token()
 		if token not in tokens or token == '':
 			abort(401)
-
 		userid = tokens[token]
-		transactions = query_db ('select transaction_datetime, transaction_type, transaction_amount, balance_after, transaction_name from transactions where id = ? ', [userid])
+		transactions = query_db ('select account_type.id, accounts.id, transactions.transaction_datetime, transactions.transaction_type, transactions.transaction_amount, transactions.transaction_name from transactions, accounts, account_type where accounts.id = ? and account_type.type = ?',[userid, account_type])
 		results = {}
 		for r in transactions:
 			results[r[0]] = r[1:]
-	#Get account that belongs to the user
-	#Returns all transactions, should only return current or savings.
-#	transactions = query_db('select transactions.transaction_datetime, transaction_types.type, transactions.transaction_amount, transactions.balance_before, transactions.balance_after, transactions.transaction_name from transactions, transaction_types where transactions.id = ? AND transactions.transaction_type = transaction_types.id', [tokens[token]], one=False)
-#	results = {}
-#	for r in transactions:
-#		results[r[0]] = r[1:]
 		return jsonify(results)
 	return make_response('Error')
 

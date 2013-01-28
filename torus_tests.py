@@ -82,9 +82,18 @@ class TorusTestCase(unittest.TestCase):
 	print rv.data
         assert 'You need to be logged in' not in rv.data
 
+
     def test_account_savings(self):
-      """ Test savings account """
-      pass
+        """ Test savings account """
+        rv = self.send_req('/accounts/savings', {'token': ''})
+        assert 'You need to be logged in' in rv.data
+        #Now login
+        rv = self.login('john', 'hello', '9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043')
+        self.token = rv.headers['X-token']
+        assert self.token is not None and self.token != ''
+        rv = self.send_req('/accounts/savings', {'token': self.token})
+	print rv.data
+        assert 'You need to be logged in' not in rv.data
       
     def test_transaction(self):
       """ Test transaction """
