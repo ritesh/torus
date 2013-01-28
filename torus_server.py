@@ -47,16 +47,18 @@ def generate_token(username, userid):
 
 def check_auth(username, password):
 	db = get_db()
-	print username, password
+	print username, password, len(password.strip())
 	#pwhash = hashlib.sha1(password).hexdigest()  
 	#Bad idea, this allows SQL injection!
-	cur = db.execute("select * from authdetails where username  = \"%s\" and password = \"%s\"" % (username, password))
+	cur = db.execute("select * from authdetails where username  = \"%s\" and password = \"%s\"" % (username, password.strip()))
 	result =  cur.fetchone()
 	if result is not None:
+		print result[0]
 		userid = result[0]
 		db.execute('update authdetails SET lastlogin = ? WHERE id = ?', (time.time(), userid))
 		return generate_token(username, userid)
 	else:
+		print "Incorrect pw username"
 		#Incorrect username or password
 		return None
 
