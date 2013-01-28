@@ -3,6 +3,8 @@ import torus_server
 import unittest
 import tempfile
 import json
+import hashlib
+import base64
 
 class TorusTestCase(unittest.TestCase):
 
@@ -22,9 +24,10 @@ class TorusTestCase(unittest.TestCase):
 
     def login(self, username, password, client_key):
         """Helper function to login"""
+	pw = base64.standard_b64encode(hashlib.md5(password).digest())
         return self.app.post('/login', data={
             'username': username,
-            'password': password,
+            'password': pw,
 	    'client_key': client_key
         }, follow_redirects=True)
 

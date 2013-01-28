@@ -49,9 +49,9 @@ def generate_token(username, userid):
 def check_auth(username, password):
 	db = get_db()
 	print username, password
-	pwhash = hashlib.sha1(password).hexdigest()  
+	#pwhash = hashlib.sha1(password).hexdigest()  
 	#Bad idea, this allows SQL injection!
-	cur = db.execute("select * from authdetails where username  = \"%s\" and password = \"%s\"" % (username, pwhash))
+	cur = db.execute("select * from authdetails where username  = \"%s\" and password = \"%s\"" % (username, password))
 	result =  cur.fetchone()
 	if result is not None:
 		userid = result[0]
