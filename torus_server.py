@@ -51,7 +51,7 @@ def check_auth(username, password):
 	print username, password
 	#pwhash = hashlib.sha1(password).hexdigest()  
 	#Bad idea, this allows SQL injection!
-	cur = db.execute("select * from authdetails where username  = \"%s\" and password = \"%s\"" % (username, password))
+	cur = db.execute("select * from authdetails where username  = \"%s\" and password = \"%s\"" % (username, password.strip()))
 	result =  cur.fetchone()
 	if result is not None:
 		userid = result[0]
