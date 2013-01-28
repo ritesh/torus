@@ -43,11 +43,11 @@ create table transactions(
 	foreign key (transaction_type) references transaction_types(id)
 );
 
-insert into authdetails (username, password) values ('john', 'aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d');
-insert into authdetails (username, password) values ('jane', 'aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d');
-insert into authdetails (username, password) values ('jack', 'aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d');
-insert into authdetails (username, password) values ('molly', 'aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d');
-insert into authdetails (username, password) values ('moe', 'aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d');
+insert into authdetails (username, password) values ('john', 'XUFAKrxLKna5cZ2REBfFkg==');
+insert into authdetails (username, password) values ('jane', 'XUFAKrxLKna5cZ2REBfFkg==');
+insert into authdetails (username, password) values ('jack', 'XUFAKrxLKna5cZ2REBfFkg==');
+insert into authdetails (username, password) values ('molly', 'XUFAKrxLKna5cZ2REBfFkg==');
+insert into authdetails (username, password) values ('moe', 'XUFAKrxLKna5cZ2REBfFkg==');
 
 insert into account_type (id, type) values (1, 'savings');
 insert into account_type (id, type) values (2, 'current');
